@@ -48,7 +48,7 @@ type public TurboCsvFileTypeProvider(cfg:TypeProviderConfig) as this =
                           | (true, x) -> typeof<DateTime>
                           | _ -> typeof<string>
 
-        let inferedTypes = firstLineFields |> Seq.map inferType
+        let inferredTypes = firstLineFields |> Seq.map inferType
         
         let getterCode (fieldTy : Type) i =
             match fieldTy.Name with
@@ -58,7 +58,7 @@ type public TurboCsvFileTypeProvider(cfg:TypeProviderConfig) as this =
             | _ -> fun [row] -> <@@(%%row:string[]).[i] @@>
 
         headers 
-        |> Seq.zip inferedTypes
+        |> Seq.zip inferredTypes
         |> Seq.mapi 
             (fun i x -> ProvidedProperty((snd x), (fst x), GetterCode = (getterCode (fst x) i)))
         |> Seq.iter rowTy.AddMember
