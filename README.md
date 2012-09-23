@@ -1,7 +1,10 @@
 ﻿TurboCsvFileTypeProvider
-=======
-Modification of sample [csv file type provider](http://fsharp3sample.codeplex.com/SourceControl/changeset/view/8670#195462) by Microsft. Compared to the original MiniScvProvider, TurboCsvFileTypeProvider supports other data types than just floats. The provider uses the first line of data to infer the types of each column, currently supporting int, decimal, string and DateTime.
-
+========================
+Modification of sample [csv file type provider](http://fsharp3sample.codeplex.com/SourceControl/changeset/view/8670#195462) by Microsft. Compared to the original MiniScvProvider, TurboCsvFileTypeProvider supports other data types than just floats. The provider uses the first line of data to infer the types of each column, currently supporting the following types:
+-int
+-decimal
+-string
+-DateTime.
 
 How do I use it?
 ================
@@ -23,6 +26,10 @@ let csv = new TurboCsvFileTypeProvider.TurboCsv<"test.csv">()
 csv.Data 
 |> Seq.iter (fun x -> printfn "%s %d %f %s" (x.Date.ToShortDateString()) x.LocationId x.Temperature x.Description)
 ````
+What's next?
+============
+Using the first line of data to infer the type of each column is not exactly safe. Unfortunatelly, you will not be able to tell that an entire column fits the inferred type without reading in the entire column first. This may be undesirable when working with large files. The other option is to allow the user to specify the definition of each column explicitely.
+That being said, the type provider as it is has been quite useful to me so far. Let me know if you have any suggestions or advice.
 
 License
 =======
