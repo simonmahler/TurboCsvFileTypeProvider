@@ -5,7 +5,6 @@ open System.Reflection
 open System.IO
 open Samples.FSharp.ProvidedTypes
 open Microsoft.FSharp.Core.CompilerServices
-open System.Text.RegularExpressions
 
 // Simple type wrapping CSV data
 type CsvFile(filename) =
