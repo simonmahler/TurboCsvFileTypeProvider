@@ -24,8 +24,12 @@ We can now read in the file using the following code:
 #r @".\bin\Debug\TurboCsvFileTypeProvider.dll"
 let csv = new TurboCsvFileTypeProvider.TurboCsv<"test.csv">()
 csv.Data 
-|> Seq.iter (fun x -> printfn "%s %d %f %s" (x.Date.ToShortDateString()) x.LocationId x.Temperature x.Description)
+|> Seq.iter (fun x -> printfn "%s %d %f %s" (x.Date.Value.ToShortDateString()) x.LocationId.Value x.Temperature.Value x.Description.Value)
 ````
+
+Note the use of the .Value property. This is because the provider specifies individual fields as options (nullable, for those not as familiar with F#).
+When a field is missing, the value is simply None. It is important to realize the significance of the very first data row as any field that is missing will currently prevent the provider from corretly inferring the type.
+
 What's next?
 ============
 Using the first line of data to infer the type of each column is not exactly safe. Unfortunatelly, you will not be able to tell that an entire column fits the inferred type without reading in the entire column first. This may be undesirable when working with large files. The other option is to allow the user to specify the definition of each column explicitely.

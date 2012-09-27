@@ -11,7 +11,13 @@ type CsvFile(filename) =
     // Cache the sequence of all data lines (all lines but the first)
     let data = 
         seq { for line in File.ReadAllLines(filename) |> Seq.skip 1 do
-                yield line.Split(',') |> Array.map string }
+                yield 
+                    if (line.Length > 0) 
+                    then 
+                        line.Split(',') |> Array.map string 
+                    else
+                        Array.empty
+            }
         |> Seq.cache
     member __.Data = data
 
@@ -40,21 +46,21 @@ type public TurboCsvFileTypeProvider(cfg:TypeProviderConfig) as this =
 
         let inferType value =
             match Int32.TryParse(value) with
-            | (true, x) -> typeof<Int32>
+            | (true, x) -> typeof<option<Int32>>
             | _ -> match Decimal.TryParse(value) with
-                   | (true, x) -> typeof<Decimal>
+                   | (true, x) -> typeof<option<Decimal>>
                    | _ -> match DateTime.TryParse(value) with
-                          | (true, x) -> typeof<DateTime>
-                          | _ -> typeof<string>
+                          | (true, x) -> typeof<option<DateTime>>
+                          | _ -> typeof<option<string>>
 
         let inferredTypes = firstLineFields |> Seq.map inferType
         
         let getterCode (fieldTy : Type) i =
-            match fieldTy.Name with
-            | "Int32" -> fun [row] -> <@@ Int32.Parse((%%row:string[]).[i]) @@>
-            | "Decimal" -> fun [row] -> <@@ Decimal.Parse((%%row:string[]).[i]) @@>
-            | "DateTime" -> fun [row] -> <@@ DateTime.Parse((%%row:string[]).[i]) @@>
-            | _ -> fun [row] -> <@@(%%row:string[]).[i] @@>
+            match (fieldTy.GetGenericArguments().[0]).Name with
+            | "Int32" -> fun [row] -> <@@ if (%%row:string[]).Length>i then Some(Int32.Parse((%%row:string[]).[i])) else None @@>
+            | "Decimal" -> fun [row] -> <@@ if (%%row:string[]).Length>i then Some(Decimal.Parse((%%row:string[]).[i])) else None @@>
+            | "DateTime" -> fun [row] -> <@@ if (%%row:string[]).Length>i then Some(DateTime.Parse((%%row:string[]).[i])) else None @@>
+            | _ -> fun [row] -> <@@ if (%%row:string[]).Length>i then Some((%%row:string[]).[i]) else None @@>
 
         headers 
         |> Seq.zip inferredTypes
