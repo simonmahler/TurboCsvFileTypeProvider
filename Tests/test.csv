@@ -1,0 +1,5 @@
+Date,LocationId,Temperature,Description,Notes
+2012-1-1,35,12.3,sunny,all's good
+2012-1-1,289,-0.5,nice,colddd
+2012-1-2,289,34.2,rainy,2
+2012-1-2,35,31.1,snowy,igloo!

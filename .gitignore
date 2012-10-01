@@ -41,6 +41,8 @@ local.properties
 *.user
 *.sln.docstates
 *.ncrunchproject
+*.dll
+*.ncrunchsolution
 
 # Build results
 [Dd]ebug/
