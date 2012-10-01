@@ -6,7 +6,6 @@ open System.IO
 open Samples.FSharp.ProvidedTypes
 open Microsoft.FSharp.Core.CompilerServices
 
-// Simple type wrapping CSV data
 type CsvFile(filename) =
     // Cache the sequence of all data lines (all lines but the first)
     let data = 
@@ -34,7 +33,48 @@ type public TurboCsvFileTypeProvider(cfg:TypeProviderConfig) as this =
 
     // Parameterize the type by the file to use as a template
     let filename = ProvidedStaticParameter("filename", typeof<string>)
+    
+    let defaultValueForInt = ProvidedStaticParameter("defaultInt", typeof<option<int>>)
+
     do csvTy.DefineStaticParameters([filename], fun tyName [| :? string as filename |] ->
+        
+        let parseInt row i =
+            <@@ 
+                if (%%row:string[]).Length>i 
+                then 
+                    try Some(Int32.Parse((%%row:string[]).[i]))
+                    with 
+                    | _ -> None 
+                else None 
+            @@>
+
+        let parseDecimal row i =
+            <@@ 
+                if (%%row:string[]).Length>i 
+                then 
+                    try Some(Decimal.Parse((%%row:string[]).[i]))
+                    with 
+                    | _ -> None 
+                else
+                    None 
+            @@>
+
+        let parseDateTime row i =
+            <@@ 
+                if (%%row:string[]).Length>i 
+                then 
+                    try Some(DateTime.Parse((%%row:string[]).[i]))
+                    with 
+                    | _ -> None 
+                else None 
+            @@>
+
+        let parseString row i =
+            <@@ 
+                if (%%row:string[]).Length>i 
+                then Some((%%row:string[]).[i])
+                else None 
+            @@>
 
         let resolvedFilename = Path.Combine(cfg.ResolutionFolder, filename)
         
@@ -54,14 +94,13 @@ type public TurboCsvFileTypeProvider(cfg:TypeProviderConfig) as this =
                           | _ -> typeof<option<string>>
 
         let inferredTypes = firstLineFields |> Seq.map inferType
-        
+     
         let getterCode (fieldTy : Type) i =
-            match (fieldTy.GetGenericArguments().[0]).Name with
-            | "Int32" -> fun [row] -> <@@ if (%%row:string[]).Length>i then Some(Int32.Parse((%%row:string[]).[i])) else None @@>
-            | "Decimal" -> fun [row] -> <@@ if (%%row:string[]).Length>i then Some(Decimal.Parse((%%row:string[]).[i])) else None @@>
-            | "DateTime" -> fun [row] -> <@@ if (%%row:string[]).Length>i then Some(DateTime.Parse((%%row:string[]).[i])) else None @@>
-            | _ -> fun [row] -> <@@ if (%%row:string[]).Length>i then Some((%%row:string[]).[i]) else None @@>
-
+            match fieldTy with
+            | x when x = typeof<option<int>> -> fun [row] -> parseInt row i
+            | x when x = typeof<option<decimal>> -> fun [row] -> parseDecimal row i
+            | x when x = typeof<option<DateTime>> -> fun [row] -> parseDateTime row i
+            | _ -> fun [row] -> parseString row i
         headers 
         |> Seq.zip inferredTypes
         |> Seq.mapi 
