@@ -14,7 +14,7 @@ Consider the following csv file (test.csv):
 ````
 Date,LocationId,Temperature,Description
 2012-1-1,35,12.3,sunny
-2012-1-1,289,-0.4,sunny
+2012-1-1,289,-0.5,nice
 2012-1-2,289,34.2,rainy
 2012-1-2,35,31.1,snowy
 ````
@@ -28,7 +28,8 @@ csv.Data
 ````
 
 Note the use of the .Value property. This is because the provider specifies individual fields as options (nullable, for those not as familiar with F#).
-When a field is missing, the value is simply None. It is important to realize the significance of the very first data row as any field that is missing will currently prevent the provider from corretly inferring the type.
+When a field is missing, the value is simply None.
+It is important to realize the significance of the very first data row as any field that is missing will currently prevent the provider from corretly inferring the type.
 
 What's next?
 ============
